@@ -11,5 +11,7 @@ class Hypersphere(EmbeddedManifold):
         self.dim = dim
 
     def poisson_sample(self, intensity: float, nbhood_radius: float):
+        if dim != 2:
+            raise NotImplementedError
         points = np.array([])
         return PointCloud(points=points)
