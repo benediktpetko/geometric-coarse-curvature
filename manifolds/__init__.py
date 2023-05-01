@@ -1,2 +1,2 @@
 from manifold import *
-from hypersphere import *
+from model_spaces import *

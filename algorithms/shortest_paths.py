@@ -1,9 +1,12 @@
 import numpy as np
+from typing import Tuple
 
 
 def shortest_path_distances(edge_weights: np.ndarray) -> np.ndarray:
     """
     Compute the shortest path distances between all pairs of points in a graph.
+
+    Also known as the Floyd-Warshall algorithm.
 
     Parameters
     ----------
@@ -21,67 +24,38 @@ def shortest_path_distances(edge_weights: np.ndarray) -> np.ndarray:
     for k in range(num_points):
         for i in range(num_points):
             for j in range(num_points):
-                distances[i, j] = min(distances[i, j], distances[i, k] + distances[k, j])
+                if distances[i, j] > distances[i, k] + distances[k, j]:
+                    distances[i, j] = distances[i, k] + distances[k, j]
     return distances
 
 
-def find_shortest_path(edge_weights: np.ndarray, start: int, end: int) -> list:
+def shortest_path_distances_and_midpoints(edge_weights: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Find the shortest path between two points in a graph.
+    Compute the shortest path distances between all pairs of points in a graph
+    and keep track of the midpoints on the shortest paths.
+
+    Also known as the Floyd-Warshall algorithm.
 
     Parameters
     ----------
     edge_weights : np.ndarray
         A matrix of edge weights. If there is no edge between two points, the
         corresponding entry should be np.inf.
-    start : int
-        The index of the starting point.
-    end : int
-        The index of the ending point.
 
     Returns
     -------
-    list
-        A list of indices of the points in the shortest path.
+    Tuple[np.ndarray, np.ndarray]
+        A matrix of shortest path distances between all pairs of points, and
+        a matrix of midpoints on the shortest paths.
     """
     num_points = edge_weights.shape[0]
     distances = edge_weights.copy()
+    midpoints = np.zeros((num_points, num_points), dtype=int)
     for k in range(num_points):
         for i in range(num_points):
             for j in range(num_points):
-                distances[i, j] = min(distances[i, j], distances[i, k] + distances[k, j])
-    path = [start]
-    while path[-1] != end:
-        path.append(np.argmin(distances[path[-1], :]))
-    return path
+                if distances[i, j] > distances[i, k] + distances[k, j]:
+                    distances[i, j] = distances[i, k] + distances[k, j]
+                    midpoints[i, j] = k
+    return distances, midpoints
 
-
-def find_shortest_path_midpoint(edge_weights: np.ndarray, start: int, end: int) -> int:
-    """
-    Find the midpoint of the shortest path between two points in a graph.
-
-    Parameters
-    ----------
-    edge_weights : np.ndarray
-        A matrix of edge weights. If there is no edge between two points, the
-        corresponding entry should be np.inf.
-    start : int
-        The index of the starting point.
-    end : int
-        The index of the ending point.
-
-    Returns
-    -------
-    int
-        The index of the midpoint of the shortest path.
-    """
-    num_points = edge_weights.shape[0]
-    distances = edge_weights.copy()
-    for k in range(num_points):
-        for i in range(num_points):
-            for j in range(num_points):
-                distances[i, j] = min(distances[i, j], distances[i, k] + distances[k, j])
-    path = [start]
-    while path[-1] != end:
-        path.append(np.argmin(distances[path[-1], :]))
-    return path[len(path) // 2]
