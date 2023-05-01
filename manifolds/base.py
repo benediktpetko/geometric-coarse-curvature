@@ -2,7 +2,7 @@ class RiemannianManifold:
     def __init__(self, dim: int):
         self.dim = dim
 
-    def sample(self):
+    def poisson_sample(self, intensity: float):
         pass
 
 
