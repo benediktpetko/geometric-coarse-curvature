@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 from graphs.geometric_graphs import GeometricGraph
 
@@ -25,8 +26,16 @@ def curvature_convergence_analyzer(
         for _ in range(num_runs):
             point_cloud = manifold.poisson_sample(intensities[i])
             geometric_graph = GeometricGraph(point_cloud, root, connectivities[i])
-            sample_curvatures.append(geometric_graph.compute_ricci_curvature(scales[i], method=method))
-        results.append(sum(sample_curvatures) / num_runs)
+            if geometric_graph.graph_distances is None:
+                geometric_graph.compute_graph_distances_and_midpoints()
+            target = np.argwhere((scales[i] / 2 < geometric_graph.graph_distances[0, :]) *
+                                 (scales[i] * 3 / 2 > geometric_graph.graph_distances[0, :]))[1]
+            ricci_curvature = 2 * (manifold.dim + 2) / scales[i] ** 2 * \
+                              geometric_graph.compute_ricci_curvature(target, scales[i], method=method)
+            sample_curvatures.append(ricci_curvature)
+        result = sum(sample_curvatures) / num_runs
+        results.append(result)
+        print(f"Scale: {scales[i]}, curvature: {result} \n")
     plt.plot(range(len(intensities)), results)
     plt.show()
     print("Curvatures at root: \n", results)

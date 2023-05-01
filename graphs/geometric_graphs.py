@@ -1,7 +1,7 @@
 import numpy as np
 
 from algorithms.shortest_paths import shortest_path_distances_and_midpoints
-from algorithms.transport_maps import triangular_parallel_transport_distance
+from algorithms.transport_maps import triangular_wasserstein_distance
 
 
 class PointCloud:
@@ -44,23 +44,27 @@ class GeometricGraph(PointCloud):
         self.root = root
         self.points = np.concatenate((self.root[np.newaxis, :], self.points), axis=0)
 
-    def compute_graph_distances_and_midpoints(self):
+    def compute_graph_distances_and_midpoints(self, scale: float = np.inf):
+        """
+        Compute the graph distances and midpoints between points around the root at a certain scale.
+        """
         if not self.ambient_distances:
             self.compute_ambient_distances()
         edge_weights = self.ambient_distances.copy()
         edge_weights[edge_weights > self.connectivity] = np.inf
         self.graph_distances, self.midpoints = shortest_path_distances_and_midpoints(edge_weights)
 
-    def compute_ricci_curvature(self, scale: float, method="triangular"):
+    def compute_ricci_curvature(self, target: int, scale: float, method="triangular") -> float:
         """
-        Compute the coarse curvature of the graph at the root.
+        Compute the coarse curvature of the graph at the root in the direction of the target.
 
         Methods implemented: ``triangular``.
         """
-        if not self.graph_distances or not self.midpoints:
+        if self.graph_distances is None:
             self.compute_graph_distances_and_midpoints()
         if method == "triangular":
-            self.ricci_curvature = triangular_parallel_transport_distance(self.graph_distances, self.midpoints, scale)
+            self.ricci_curvature = 1 - triangular_wasserstein_distance(
+                0, target, self.graph_distances, self.midpoints, scale) / self.graph_distances[0, target]
             return self.ricci_curvature
         else:
             raise NotImplementedError(f"Method {method} is not implemented.")
