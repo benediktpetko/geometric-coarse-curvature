@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import logging
 
 from manifolds.base import EmbeddedManifold
 from structures.point_cloud import PointCloud
@@ -10,11 +11,17 @@ class Hypersphere(EmbeddedManifold):
         super().__init__(dim, dim + 1)
         self.radius = radius
         self.dim = dim
+        self.logger = logging.Logger("Manifold")
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter("%(name)s: %(levelname)s: %(message)s")
+        self.logger.addHandler(handler)
+        handler.setFormatter(formatter)
 
     def poisson_sample(self, intensity: float):
         num_points = np.random.poisson(lam=intensity)
         points = np.random.normal(size=(num_points, self.ambient_dim))
         points = self.radius * points / np.linalg.norm(points, axis=1)[:, np.newaxis]
+        self.logger.info(f"Sampled {len(points)} points.")
         return PointCloud(points=points)
 
     def plot(self, points: np.ndarray):

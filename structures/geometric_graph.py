@@ -1,4 +1,5 @@
 import numpy as np
+import logging
 
 from algorithms.shortest_paths import johnson_algorithm, find_midpoint
 from structures.point_cloud import PointCloud
@@ -24,6 +25,11 @@ class GeometricGraph(PointCloud):
         self.root = root
         self.points = np.concatenate((self.root[np.newaxis, :], self.points), axis=0)
         self.edge_weights = None
+        self.logger = logging.Logger("Geometric graph")
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter("%(name)s: %(levelname)s: %(message)s")
+        self.logger.addHandler(handler)
+        handler.setFormatter(formatter)
 
     def _compute_edge_weights(self, scale: float = np.inf):
         """
@@ -33,10 +39,10 @@ class GeometricGraph(PointCloud):
         :return:
         """
         if self.ambient_distances is None:
-            self.compute_ambient_distances()
+            self.compute_ambient_distances(self.root, scale)
         points_subset_idx = np.argwhere(self.ambient_distances[0, :] < 2 * scale).flatten()
         subset_idx_mesh = np.ix_(points_subset_idx, points_subset_idx)
-        print(f"Kept {len(points_subset_idx)} points in a fixed neigbhourhood.")
+        self.logger.info(f"Kept {len(points_subset_idx)} points in a fixed neighbourhood.")
         self.edge_weights = self.ambient_distances[subset_idx_mesh].copy()
         self.edge_weights[self.edge_weights > self.connectivity] = np.inf
 
@@ -49,9 +55,10 @@ class GeometricGraph(PointCloud):
             self._compute_edge_weights(scale)
         points_subset_idx = np.argwhere(self.ambient_distances[0, :] < 2 * scale).flatten()
         subset_idx_mesh = np.ix_(points_subset_idx, points_subset_idx)
-        print(f"Kept {len(points_subset_idx)} points at given scale.")
+        self.logger.info(f"Kept {len(points_subset_idx)} points at given scale.")
         self.edge_weights = self.ambient_distances[subset_idx_mesh].copy()
         self.edge_weights[self.edge_weights > self.connectivity] = np.inf
+        self.logger.info("Computing graph distances...")
         self.graph_distances = johnson_algorithm(self.edge_weights)
 
     def _compute_midpoints(self, scale: float = np.inf, target: int = None):
@@ -59,13 +66,21 @@ class GeometricGraph(PointCloud):
             self._compute_graph_distances(scale)
         num_points = len(self.graph_distances)
         self.midpoints = np.zeros((num_points, 2), dtype=int)
+        self.logger.info(f"The target has index {target}")
+        self.logger.info("Computing midpoints...")
         for i in range(num_points):
-            self.midpoints[i, 0] = find_midpoint(i, self.root, self.graph_distances)
-            self.midpoints[i, 1] = find_midpoint(i, target, self.graph_distances)
+            self.logger.info(f"Computing midpoints for point with index {i}.")
+            try:
+                self.midpoints[i, 0] = find_midpoint(i, 0, self.graph_distances)
+                self.midpoints[i, 1] = find_midpoint(i, target, self.graph_distances)
+            except TypeError:
+                self.logger.warning(f"Couldn't compute midpoint for point {i}.")
+                continue
 
     def _generate_random_target(self, scale: float = np.inf):
         if self.graph_distances is None:
             self._compute_graph_distances(scale)
+        self.logger.info("Generating target point.")
         target = np.argwhere((scale / 2 < self.graph_distances[0, :]) *
                              (2 * scale > self.graph_distances[0, :]))[0]
         return target
@@ -82,8 +97,11 @@ class GeometricGraph(PointCloud):
         if self.midpoints is None:
             self._compute_midpoints(scale, target)
         num_points = len(self.graph_distances)
+        self.logger.info("Computing coarse curvature...")
         if method == "triangular":
-            wasserstein_distance = 1 / num_points * sum([self.graph_distances(self.midpoints[i,0], self.midpoints[i,1])])
+            wasserstein_distance = 1 / num_points * sum(
+                [self.graph_distances[self.midpoints[i, 0], self.midpoints[i, 1]] for i in range(num_points)]
+            )
             coarse_curvature = 1 - wasserstein_distance
             return coarse_curvature
         else:

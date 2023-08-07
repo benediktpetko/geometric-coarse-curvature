@@ -1,4 +1,5 @@
 import numpy as np
+import logging
 
 
 class PointCloud:
@@ -10,10 +11,27 @@ class PointCloud:
         self.points = points
         self.num_points = points.shape[0]
         self.ambient_dim = points.shape[1]
+        self.logger = logging.Logger("Point cloud")
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter("%(name)s: %(levelname)s: %(message)s")
+        self.logger.addHandler(handler)
+        handler.setFormatter(formatter)
 
-    def compute_ambient_distances(self):
+    def compute_ambient_distances(self, root, scale):
+        """
+        Computes ambient distances near a root point at given scale.
+        :param root:
+        :param scale:
+        :return:
+        """
+        self.logger.info("Computing pairwise ambient distances...")
+        distances_from_root = np.linalg.norm(root - self.points, axis=1)
+        points_subset_idx = np.argwhere(distances_from_root < 2 * scale).flatten()
+        # subset_idx_mesh = np.ix_(points_subset_idx, points_subset_idx)
+        points_subset = self.points[points_subset_idx]
         self.ambient_distances = np.linalg.norm(
-            self.points[:, np.newaxis, :] - self.points[np.newaxis, :, :], axis=2)
+            points_subset[:, np.newaxis, :] - points_subset[np.newaxis, :, :], axis=2
+        )
 
     def __str__(self):
         return f"PointCloud with {self.num_points} points in {self.ambient_dim} dimensions. \n" + \

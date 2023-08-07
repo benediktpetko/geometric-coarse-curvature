@@ -25,7 +25,6 @@ def curvature_convergence_analyzer(
         sample_curvatures = []
         for _ in range(num_runs):
             point_cloud = manifold.poisson_sample(intensities[i])
-            print(f"Sampled {point_cloud.num_points} points.")
             geometric_graph = GeometricGraph(point_cloud, root, connectivities[i])
             ricci_curvature = 2 * (manifold.dim + 2) / (scales[i] ** 2) * \
                               geometric_graph.compute_coarse_curvature(scales[i], method=method)
