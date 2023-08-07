@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from graphs.geometric_graphs import GeometricGraph
+from structures.geometric_graph import GeometricGraph
 
 
 def curvature_convergence_analyzer(
@@ -25,13 +25,10 @@ def curvature_convergence_analyzer(
         sample_curvatures = []
         for _ in range(num_runs):
             point_cloud = manifold.poisson_sample(intensities[i])
+            print(f"Sampled {point_cloud.num_points} points.")
             geometric_graph = GeometricGraph(point_cloud, root, connectivities[i])
-            if geometric_graph.graph_distances is None:
-                geometric_graph.compute_graph_distances_and_midpoints()
-            target = np.argwhere((scales[i] / 2 < geometric_graph.graph_distances[0, :]) *
-                                 (scales[i] * 3 / 2 > geometric_graph.graph_distances[0, :]))[1]
-            ricci_curvature = 2 * (manifold.dim + 2) / scales[i] ** 2 * \
-                              geometric_graph.compute_ricci_curvature(target, scales[i], method=method)
+            ricci_curvature = 2 * (manifold.dim + 2) / (scales[i] ** 2) * \
+                              geometric_graph.compute_coarse_curvature(scales[i], method=method)
             sample_curvatures.append(ricci_curvature)
         result = sum(sample_curvatures) / num_runs
         results.append(result)

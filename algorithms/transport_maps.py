@@ -10,5 +10,6 @@ def triangular_parallel_transport_distance(
 
 def triangular_wasserstein_distance(
         root: int, target: int, graph_distances: np.ndarray, midpoints: np.ndarray, scale: float):
-    root_neighbours = np.argwhere(graph_distances[root, :] < scale)
+    print("Graph_distances:", graph_distances.shape)
+    print("Root neighbours:", len(root_neighbours))
     return triangular_parallel_transport_distance(root_neighbours, root, target, graph_distances, midpoints).mean()

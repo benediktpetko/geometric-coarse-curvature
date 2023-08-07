@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from manifolds.base import EmbeddedManifold
-from graphs.geometric_graphs import PointCloud
+from structures.point_cloud import PointCloud
 
 
 class Hypersphere(EmbeddedManifold):
