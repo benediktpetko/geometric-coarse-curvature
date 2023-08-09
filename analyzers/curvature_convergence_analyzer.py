@@ -5,7 +5,8 @@ from structures.geometric_graph import GeometricGraph
 
 
 def curvature_convergence_analyzer(
-        manifold, root, connectivities, scales, intensities, num_runs=1, method="triangular"):
+        manifold, root, connectivities, scales, intensities, num_runs=1,
+        method="triangular", algorithm='floyd_warshall'):
     """
     Compare the curvature at the root of a geometric graph to the curvature of the manifold
     at the corresponding point.
@@ -27,7 +28,7 @@ def curvature_convergence_analyzer(
             point_cloud = manifold.poisson_sample(intensities[i])
             geometric_graph = GeometricGraph(point_cloud, root, connectivities[i])
             ricci_curvature = 2 * (manifold.dim + 2) / (scales[i] ** 2) * \
-                              geometric_graph.compute_coarse_curvature(scales[i], method=method)
+                              geometric_graph.compute_coarse_curvature(scales[i], method=method, algorithm=algorithm)
             sample_curvatures.append(ricci_curvature)
         result = sum(sample_curvatures) / num_runs
         results.append(result)

@@ -17,7 +17,7 @@ class PointCloud:
         self.logger.addHandler(handler)
         handler.setFormatter(formatter)
 
-    def compute_ambient_distances(self, root, scale):
+    def _compute_ambient_distances(self, root, scale):
         """
         Computes ambient distances near a root point at given scale.
         :param root:
@@ -32,6 +32,7 @@ class PointCloud:
         self.ambient_distances = np.linalg.norm(
             points_subset[:, np.newaxis, :] - points_subset[np.newaxis, :, :], axis=2
         )
+        self.logger.info(f"Kept {len(self.ambient_distances)} points from a fixed neighbourhood.")
 
     def __str__(self):
         return f"PointCloud with {self.num_points} points in {self.ambient_dim} dimensions. \n" + \
