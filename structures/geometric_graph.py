@@ -50,7 +50,6 @@ class GeometricGraph(PointCloud):
         Compute the graph distances and midpoints between points around the root,
         ignoring points further than 2*scale away.
         """
-        self._compute_edge_weights(scale)
         points_subset_idx = np.argwhere(self.ambient_distances[0, :] < 2 * scale).flatten()
         subset_idx_mesh = np.ix_(points_subset_idx, points_subset_idx)
         self.logger.info(f"Kept {len(points_subset_idx)} points at given scale.")
@@ -59,13 +58,13 @@ class GeometricGraph(PointCloud):
         self.logger.info("Computing graph distances...")
         if algorithm == 'floyd-warshall':
             self.graph_distances = floyd_warshall(self.edge_weights)
-        if algorithm == 'johnson':
-            self.graph_distances = johnson(self.edge_weights)
+        if algorithm == 'dijkstra':
+            self.graph_distances = dijkstra_pairwise(self.edge_weights)
 
     def _compute_midpoint_indices(self, scale: float = np.inf, target: int = None):
         num_points = len(self.graph_distances)
         self.midpoint_indices = np.zeros((num_points, 2), dtype=int)
-        self.midpoint_feasible = np.zeros(num_points, dtype=bool)
+        midpoint_feasible = np.zeros(num_points, dtype=bool)
         self.logger.info(f"The target has index {target}")
         self.logger.info("Computing midpoint indices...")
         for i in range(num_points):
@@ -74,16 +73,15 @@ class GeometricGraph(PointCloud):
             if first_midpoint_index is not None and second_midpoint_index is not None:
                 self.midpoint_indices[i, 0] = first_midpoint_index
                 self.midpoint_indices[i, 1] = second_midpoint_index
-                self.midpoint_feasible[i] = True
-        subset_idx_mesh = np.ix_(self.midpoint_feasible, self.midpoint_feasible)
-        self.midpoint_indices = self.midpoint_indices[self.midpoint_feasible]
-        self.graph_distances = self.graph_distances[subset_idx_mesh]
-        self.logger.info(f"Kept only {len(self.graph_distances)} points due to connectivity constraints.")
+                midpoint_feasible[i] = True
+        subset_idx_mesh = np.ix_(midpoint_feasible, midpoint_feasible)
+        self.midpoint_indices = self.midpoint_indices[midpoint_feasible]
+        self.logger.info(f"Kept only {len(self.midpoint_indices)} points due to connectivity constraints.")
 
     def _generate_random_target(self, scale: float = np.inf):
         self.logger.info("Generating target point.")
-        target = np.argwhere((1 * scale < self.graph_distances[0, :]) *
-                             (2 * scale > self.graph_distances[0, :]))[0]
+        target = np.argwhere((1/2 * scale < np.abs(self.graph_distances[0, :])) *
+                             (2 * scale > np.abs(self.graph_distances[0, :])))[0]
         self.distance_to_target = self.graph_distances[0, target]
         return int(target)
 
@@ -102,30 +100,14 @@ class GeometricGraph(PointCloud):
             target = self._generate_random_target(scale)
         self._compute_midpoint_indices(scale, target)
 
-        num_points = len(self.graph_distances)
+        num_points = len(self.midpoint_indices)
         self.logger.info("Computing coarse curvature...")
         if method == "triangular":
             wasserstein_distance = 1 / num_points * sum(
                 [self.graph_distances[self.midpoint_indices[i, 0], self.midpoint_indices[i, 1]]
                  for i in range(num_points)]
             )
-            # distance_to_target_midpoint = self.graph_distances[0, self.midpoint_indices[target, 0]]
-            coarse_curvature = 1 - wasserstein_distance / self.distance_to_target
+            coarse_curvature = 1 - 2 * wasserstein_distance / self.distance_to_target
             return coarse_curvature
         else:
             raise NotImplementedError(f"Method {method} is not implemented.")
-
-    # def compute_graph_distances_and_midpoints(self, scale: float = np.inf):
-    #     """
-    #     Compute the graph distances and midpoints between points around the root,
-    #     ignoring points further than 3*scale away.
-    #     """
-    #     if not self.ambient_distances:
-    #         self._compute_ambient_distances()
-    #     points_subset_idx = np.argwhere(self.ambient_distances[0, :] < 2*scale).flatten()
-    #     subset_idx_mesh = np.ix_(points_subset_idx, points_subset_idx)
-    #     print(f"Kept {len(points_subset_idx)} points.")
-    #     self.edge_weights = self.ambient_distances[subset_idx_mesh].copy()
-    #     self.edge_weights[self.edge_weights > self.connectivity] = np.inf
-    #     self.graph_distances, self.midpoints = johnson_algorithm_with_midpoints(edge_weights)
-

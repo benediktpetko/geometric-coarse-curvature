@@ -32,7 +32,10 @@ class PointCloud:
         self.ambient_distances = np.linalg.norm(
             points_subset[:, np.newaxis, :] - points_subset[np.newaxis, :, :], axis=2
         )
-        self.logger.info(f"Kept {len(self.ambient_distances)} points from a fixed neighbourhood.")
+        self.logger.info(f"Kept {len(self.ambient_distances)} points from a fixed ambient neighbourhood.")
+
+    # def compute_coarse_curvature(self, root, tangent_scale, normal_scale):
+    #     pass
 
     def __str__(self):
         return f"PointCloud with {self.num_points} points in {self.ambient_dim} dimensions. \n" + \

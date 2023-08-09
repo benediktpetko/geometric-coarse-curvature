@@ -74,21 +74,7 @@ def floyd_warshall(weight_matrix):
     return distance
 
 
-def bellman_ford(weight_matrix, source):
-    num_nodes = len(weight_matrix)
-    distance = np.full(num_nodes, np.inf)
-    distance[source] = 0
-
-    for _ in range(num_nodes - 1):
-        for u in range(num_nodes):
-            for v in range(num_nodes):
-                if weight_matrix[u][v] != np.inf and distance[u] + weight_matrix[u][v] < distance[v]:
-                    distance[v] = distance[u] + weight_matrix[u][v]
-
-    return distance
-
-
-def dijkstra(weight_matrix, source):
+def dijkstra_single_source(weight_matrix, source):
     num_nodes = len(weight_matrix)
     distance = np.full(num_nodes, np.inf)
     distance[source] = 0
@@ -109,28 +95,14 @@ def dijkstra(weight_matrix, source):
     return distance
 
 
-def johnson(weight_matrix):
+def dijkstra_pairwise(weight_matrix):
     num_nodes = len(weight_matrix)
-    dummy_node = num_nodes
+    distances = np.full((num_nodes, num_nodes), np.inf)
 
-    # Add a dummy row and column with zeros to the weight matrix
-    augmented_weight_matrix = np.vstack([weight_matrix, np.zeros(num_nodes)])
-    augmented_weight_matrix = np.hstack([augmented_weight_matrix, np.zeros((num_nodes + 1, 1))])
+    for source in range(num_nodes):
+        distances[source] = dijkstra_single_source(weight_matrix, source)
 
-    # Run Bellman-Ford from the dummy node to compute potential values
-    potentials = bellman_ford(augmented_weight_matrix, dummy_node)
-
-    # Reweight the graph using the computed potentials
-    reweighted_weight_matrix = weight_matrix + (potentials[:-1] - potentials[-1])
-
-    # Run Dijkstra's algorithm from each node to compute shortest paths
-    shortest_distances = np.zeros((num_nodes, num_nodes))
-
-    for u in range(num_nodes):
-        shortest_paths = dijkstra(reweighted_weight_matrix, u)
-        shortest_distances[u] = shortest_paths[:-1] - shortest_paths[-1]
-
-    return shortest_distances
+    return distances
 
 
 def find_midpoint_index(source, endpoint, distances):
