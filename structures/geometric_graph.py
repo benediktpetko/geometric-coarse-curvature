@@ -108,6 +108,7 @@ class GeometricGraph(PointCloud):
                  for i in range(num_points)]
             )
             coarse_curvature = 1 - 2 * wasserstein_distance / self.distance_to_target
+            self.logger.info(f"Coarse curvature is {coarse_curvature}.")
             return coarse_curvature
         else:
             raise NotImplementedError(f"Method {method} is not implemented.")

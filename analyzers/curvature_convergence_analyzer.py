@@ -33,10 +33,12 @@ def curvature_convergence_analyzer(
                               geometric_graph.compute_coarse_curvature(scales[i], method=method, algorithm=algorithm)
             except IndexError:
                 continue
+            print("Estimated Ricci curvature: ", ricci_curvature, "\n")
             sample_curvatures.append(ricci_curvature)
         result = sum(sample_curvatures) / len(sample_curvatures)
         results.append(result)
         print(f"Scale: {scales[i]}, curvature: {result} \n")
+        print(f"Estimate from {len(sample_curvatures)} samples: {result} \n")
     plt.plot(range(len(intensities)), results)
     plt.show()
     print("Curvatures at root: \n", results)
