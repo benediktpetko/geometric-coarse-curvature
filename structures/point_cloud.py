@@ -13,7 +13,7 @@ class PointCloud:
         self.ambient_dim = points.shape[1]
         self.logger = logging.Logger("Point cloud")
         handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(name)s: %(levelname)s: %(message)s")
+        formatter = logging.Formatter("%(levelname)s: %(name)s: %(message)s")
         self.logger.addHandler(handler)
         handler.setFormatter(formatter)
 

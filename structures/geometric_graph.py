@@ -1,6 +1,7 @@
 import numpy as np
 import logging
 
+from tqdm import tqdm
 from algorithms.shortest_paths import *
 from structures.point_cloud import PointCloud
 
@@ -27,7 +28,7 @@ class GeometricGraph(PointCloud):
         self.edge_weights = None
         self.logger = logging.Logger("Geometric graph")
         handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(name)s: %(levelname)s: %(message)s")
+        formatter = logging.Formatter("%(levelname)s: %(name)s: %(message)s")
         self.logger.addHandler(handler)
         handler.setFormatter(formatter)
 
@@ -52,14 +53,16 @@ class GeometricGraph(PointCloud):
         """
         points_subset_idx = np.argwhere(self.ambient_distances[0, :] < 2 * scale).flatten()
         subset_idx_mesh = np.ix_(points_subset_idx, points_subset_idx)
-        self.logger.info(f"Kept {len(points_subset_idx)} points at given scale.")
+        self.logger.info(f"Kept {len(points_subset_idx)} points at given random walk scale.")
         self.edge_weights = self.ambient_distances[subset_idx_mesh].copy()
         self.edge_weights[self.edge_weights > self.connectivity] = np.inf
         self.logger.info("Computing graph distances...")
         if algorithm == 'floyd-warshall':
             self.graph_distances = floyd_warshall(self.edge_weights)
-        if algorithm == 'dijkstra':
+        elif algorithm == 'dijkstra':
             self.graph_distances = dijkstra_pairwise(self.edge_weights)
+        else:
+            raise NotImplementedError("Algorithm not implemented.")
 
     def _compute_midpoint_indices(self, scale: float = np.inf, target: int = None):
         num_points = len(self.graph_distances)
@@ -67,7 +70,7 @@ class GeometricGraph(PointCloud):
         midpoint_feasible = np.zeros(num_points, dtype=bool)
         self.logger.info(f"The target has index {target}")
         self.logger.info("Computing midpoint indices...")
-        for i in range(num_points):
+        for i in tqdm(range(num_points)):
             first_midpoint_index = find_midpoint_index(i, 0, self.graph_distances)
             second_midpoint_index = find_midpoint_index(i, target, self.graph_distances)
             if first_midpoint_index is not None and second_midpoint_index is not None:

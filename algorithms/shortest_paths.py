@@ -1,6 +1,7 @@
 import numpy as np
 from typing import Tuple
 import heapq
+from tqdm import tqdm
 
 
 def shortest_path_distances(edge_weights: np.ndarray) -> np.ndarray:
@@ -65,7 +66,7 @@ def floyd_warshall(weight_matrix):
     num_nodes = len(weight_matrix)
     distance = weight_matrix.copy()
 
-    for k in range(num_nodes):
+    for k in tqdm(range(num_nodes)):
         for i in range(num_nodes):
             for j in range(num_nodes):
                 if distance[i][j] > distance[i][k] + distance[k][j]:
@@ -99,7 +100,7 @@ def dijkstra_pairwise(weight_matrix):
     num_nodes = len(weight_matrix)
     distances = np.full((num_nodes, num_nodes), np.inf)
 
-    for source in range(num_nodes):
+    for source in tqdm(range(num_nodes)):
         distances[source] = dijkstra_single_source(weight_matrix, source)
 
     return distances

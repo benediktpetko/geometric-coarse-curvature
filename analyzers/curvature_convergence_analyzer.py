@@ -24,6 +24,8 @@ def curvature_convergence_analyzer(
     results = []
 
     for i in range(len(intensities)):
+        print("Point density factor: ", intensities[i] * connectivities[i] ** manifold.dim)
+        print("Geodesic approximation factor: ", scales[i] / connectivities[i])
         sample_curvatures = []
         for _ in range(num_runs):
             point_cloud = manifold.poisson_sample(intensities[i])

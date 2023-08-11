@@ -13,7 +13,7 @@ class Hypersphere(EmbeddedManifold):
         self.dim = dim
         self.logger = logging.Logger("Manifold")
         handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(name)s: %(levelname)s: %(message)s")
+        formatter = logging.Formatter("%(levelname)s: %(name)s: %(message)s")
         self.logger.addHandler(handler)
         handler.setFormatter(formatter)
 
