@@ -79,12 +79,16 @@ class GeometricGraph(PointCloud):
                 midpoint_feasible[i] = True
         subset_idx_mesh = np.ix_(midpoint_feasible, midpoint_feasible)
         self.midpoint_indices = self.midpoint_indices[midpoint_feasible]
-        self.logger.info(f"Kept only {len(self.midpoint_indices)} points due to connectivity constraints.")
+        self.logger.info(f"Kept only {len(self.midpoint_indices)} points due to connectivity constraints.\n"
+                         f"Connectivity ratio: {len(self.midpoint_indices) / num_points}")
 
     def _generate_random_target(self, scale: float = np.inf):
         self.logger.info("Generating target point.")
-        target = np.argwhere((1/2 * scale < np.abs(self.graph_distances[0, :])) *
-                             (2 * scale > np.abs(self.graph_distances[0, :])))[0]
+        targets = np.argwhere((1/2 * scale < np.abs(self.graph_distances[0, :])) *
+                             (2 * scale > np.abs(self.graph_distances[0, :])))
+        if targets.size == 0:
+            self.logger.warning("Couldn't find a target point at given scale.")
+        target = targets[0]
         self.distance_to_target = self.graph_distances[0, target]
         return int(target)
 

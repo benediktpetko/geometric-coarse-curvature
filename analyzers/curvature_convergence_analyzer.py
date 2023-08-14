@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import logging
 
 from structures.geometric_graph import GeometricGraph
 
@@ -21,11 +22,16 @@ def curvature_convergence_analyzer(
     :param method: the method to use to compute the coarse curvature
     :return: a list of average curvature at the root of the graph
     """
+    logger = logging.Logger("Analyzer")
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter("%(levelname)s: %(name)s: %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
     results = []
 
     for i in range(len(intensities)):
-        print("Point density factor: ", intensities[i] * connectivities[i] ** manifold.dim)
-        print("Geodesic approximation factor: ", scales[i] / connectivities[i])
+        logger.info(f"Point density factor: {intensities[i] * connectivities[i] ** manifold.dim}")
+        logger.info(f"Geodesic approximation factor: {scales[i] / connectivities[i]}")
         sample_curvatures = []
         for _ in range(num_runs):
             point_cloud = manifold.poisson_sample(intensities[i])
@@ -35,12 +41,12 @@ def curvature_convergence_analyzer(
                               geometric_graph.compute_coarse_curvature(scales[i], method=method, algorithm=algorithm)
             except IndexError:
                 continue
-            print("Estimated Ricci curvature: ", ricci_curvature, "\n")
+            logger.info(f"Estimated Ricci curvature: {ricci_curvature}")
             sample_curvatures.append(ricci_curvature)
         result = sum(sample_curvatures) / len(sample_curvatures)
         results.append(result)
-        print(f"Scale: {scales[i]}, curvature: {result} \n")
-        print(f"Estimate from {len(sample_curvatures)} samples: {result} \n")
+        logger.info(f"Scale: {scales[i]}, curvature: {result}")
+        logger.info(f"Estimate from {len(sample_curvatures)} samples: {result}")
     plt.plot(range(len(intensities)), results)
     plt.show()
-    print("Curvatures at root: \n", results)
+    logger.info(f"Curvatures at root: {results}")
