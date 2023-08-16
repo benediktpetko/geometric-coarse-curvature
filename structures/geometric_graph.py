@@ -84,7 +84,7 @@ class GeometricGraph(PointCloud):
 
     def _generate_random_target(self, scale: float = np.inf):
         self.logger.info("Generating target point.")
-        targets = np.argwhere((1/2 * scale < np.abs(self.graph_distances[0, :])) *
+        targets = np.argwhere((7/8 * scale < np.abs(self.graph_distances[0, :])) *
                              (2 * scale > np.abs(self.graph_distances[0, :])))
         if targets.size == 0:
             self.logger.warning("Couldn't find a target point at given scale.")
