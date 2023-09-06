@@ -106,12 +106,41 @@ def dijkstra_pairwise(weight_matrix):
     return distances
 
 
-def find_midpoint_index(source, endpoint, distances):
+def find_midpoint_index(source, endpoint, distances, connectivity=0):
+    ### variant 1
+    # num_nodes = len(distances)
+    # dist = np.inf
+    # midpoint = None
+    # for node in range(num_nodes):
+    #     if max(distances[source, node], distances[node, endpoint]) < dist:
+    #         dist = max(distances[source, node], distances[node, endpoint])
+    #         midpoint = node
+    # return node
+    ### variant 2
+    # num_nodes = len(distances)
+    # dist = distances[source, endpoint]
+    # midpoint_dist = distances[source, endpoint] / 2
+    # for node in range(num_nodes):
+    #     max_midpoint_deviation = max(
+    #         np.abs(distances[source, node] - midpoint_dist),
+    #         np.abs(distances[node, endpoint] - midpoint_dist)
+    #     )
+    #     if (max_midpoint_deviation < connectivity and
+    #       np.abs(distances[source, node] + distances[node, endpoint] - dist) < connectivity / 100):
+    #         return node
+    ### variant 3
     num_nodes = len(distances)
-    dist = np.inf
+    dist = distances[source, endpoint]
+    if not dist < np.inf:
+        return None
     midpoint = None
+    min_midpoint_deviation = np.inf
     for node in range(num_nodes):
-        if max(distances[source, node], distances[node, endpoint]) < dist:
-            dist = max(distances[source, node], distances[node, endpoint])
+        if not distances[source, node] < np.inf:
+            continue
+        midpoint_deviation = np.abs(distances[source, node] - dist / 2)
+        if (np.abs(distances[source, node] + distances[node, endpoint] - dist) < connectivity / 100
+                and midpoint_deviation < min_midpoint_deviation):
+            min_midpoint_deviation = midpoint_deviation
             midpoint = node
     return midpoint

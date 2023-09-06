@@ -20,6 +20,7 @@ class GeometricGraph(PointCloud):
         """
         super().__init__(points=point_cloud.points.copy())
         self.midpoint_indices = None
+        self.midpoint_distances = None
         self.coarse_curvature = None
         self.graph_distances = None
         self.connectivity = connectivity
@@ -71,8 +72,12 @@ class GeometricGraph(PointCloud):
         self.logger.info(f"The target has index {target}")
         self.logger.info("Computing midpoint indices...")
         for i in tqdm(range(num_points)):
-            first_midpoint_index = find_midpoint_index(i, 0, self.graph_distances)
-            second_midpoint_index = find_midpoint_index(i, target, self.graph_distances)
+            first_midpoint_index = find_midpoint_index(
+                i, 0, self.graph_distances, self.connectivity
+            )
+            second_midpoint_index = find_midpoint_index(
+                i, target, self.graph_distances, self.connectivity
+            )
             if first_midpoint_index is not None and second_midpoint_index is not None:
                 self.midpoint_indices[i, 0] = first_midpoint_index
                 self.midpoint_indices[i, 1] = second_midpoint_index
@@ -110,10 +115,9 @@ class GeometricGraph(PointCloud):
         num_points = len(self.midpoint_indices)
         self.logger.info("Computing coarse curvature...")
         if method == "triangular":
-            wasserstein_distance = 1 / num_points * sum(
-                [self.graph_distances[self.midpoint_indices[i, 0], self.midpoint_indices[i, 1]]
+            self.midpoint_distances = [self.graph_distances[self.midpoint_indices[i, 0], self.midpoint_indices[i, 1]]
                  for i in range(num_points)]
-            )
+            wasserstein_distance = 1 / num_points * sum(self.midpoint_distances)
             coarse_curvature = 1 - 2 * wasserstein_distance / self.distance_to_target
             self.logger.info(f"Coarse curvature is {coarse_curvature}.")
             return coarse_curvature
