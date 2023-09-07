@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import logging
+import seaborn as sns
 
 from structures.geometric_graph import GeometricGraph
 
@@ -13,9 +14,13 @@ class CurvatureConvergenceAnalyzer:
     def __init__(self, manifold, root):
         self.logger = logging.Logger("Analyzer")
         handler = logging.StreamHandler()
+        file_handler = logging.FileHandler("logfile.log")
         formatter = logging.Formatter("%(levelname)s: %(name)s: %(message)s")
         handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
+        # file_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(handler)
+        self.logger.addHandler(file_handler)
         self.results = []
         self.manifold = manifold
         self.root = root
@@ -46,3 +51,13 @@ class CurvatureConvergenceAnalyzer:
         plt.plot(range(len(intensities)), self.results)
         plt.show()
         self.logger.info(f"Curvatures at root: {self.results}")
+
+
+class DisplayMidpointDistances:
+    @staticmethod
+    def plot(analyzer: CurvatureConvergenceAnalyzer):
+        fig, ax = plt.subplots()
+        sns.histplot(analyzer.geometric_graph.midpoint_distances, ax=ax)
+        ax.axvline(analyzer.geometric_graph.distance_to_target / 2, color='r')
+        fig.show()
+        fig.savefig("../plots/midpoints_dist.png")

@@ -29,9 +29,12 @@ class GeometricGraph(PointCloud):
         self.edge_weights = None
         self.logger = logging.Logger("Geometric graph")
         handler = logging.StreamHandler()
+        file_handler = logging.FileHandler("logfile.log")
         formatter = logging.Formatter("%(levelname)s: %(name)s: %(message)s")
         self.logger.addHandler(handler)
+        self.logger.addHandler(file_handler)
         handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
 
     def _compute_edge_weights(self, scale: float = np.inf):
         """
@@ -89,7 +92,7 @@ class GeometricGraph(PointCloud):
 
     def _generate_random_target(self, scale: float = np.inf):
         self.logger.info("Generating target point.")
-        targets = np.argwhere((7/8 * scale < np.abs(self.graph_distances[0, :])) *
+        targets = np.argwhere((59/30 * scale < np.abs(self.graph_distances[0, :])) *
                              (2 * scale > np.abs(self.graph_distances[0, :])))
         if targets.size == 0:
             self.logger.warning("Couldn't find a target point at given scale.")

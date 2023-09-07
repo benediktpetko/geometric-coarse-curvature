@@ -13,9 +13,12 @@ class Hypersphere(EmbeddedManifold):
         self.dim = dim
         self.logger = logging.Logger("Manifold")
         handler = logging.StreamHandler()
+        file_handler = logging.FileHandler("logfile.log")
         formatter = logging.Formatter("%(levelname)s: %(name)s: %(message)s")
         self.logger.addHandler(handler)
+        self.logger.addHandler(file_handler)
         handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
 
     def poisson_sample(self, intensity: float):
         num_points = np.random.poisson(lam=intensity)
