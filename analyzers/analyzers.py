@@ -4,6 +4,7 @@ import logging
 import seaborn as sns
 
 from structures.geometric_graph import GeometricGraph
+from tqdm import tqdm
 from abc import ABC
 
 class Analyzer:
@@ -34,8 +35,8 @@ class CoarseRicciCurvatureAnalyzer:
     def analyze(self, connectivities, scales, intensities, num_runs=1,
                 method="triangular", algorithm='floyd-warshall'):
         for i in range(len(intensities)):
-            self.logger.info(f"Point density factor: {intensities[i] * connectivities[i] ** self.manifold.dim}")
-            self.logger.info(f"Geodesic approximation factor: {scales[i] / connectivities[i]}")
+            # self.logger.info(f"Point density factor: {intensities[i] * connectivities[i] ** self.manifold.dim}")
+            # self.logger.info(f"Geodesic approximation factor: {scales[i] / connectivities[i]}")
             self.sample_curvatures.append([])
             for _ in range(num_runs):
                 self.point_cloud = self.manifold.poisson_sample(intensities[i])
@@ -45,15 +46,15 @@ class CoarseRicciCurvatureAnalyzer:
                                   self.geometric_graph.compute_coarse_curvature(scales[i], method=method, algorithm=algorithm)
                 except IndexError:
                     continue
-                self.logger.info(f"Estimated Ricci curvature: {ricci_curvature}")
+                # self.logger.info(f"Estimated Ricci curvature: {ricci_curvature}")
                 self.sample_curvatures[i].append(ricci_curvature)
             result = sum(self.sample_curvatures[i]) / len(self.sample_curvatures[i])
             self.results.append(result)
-            self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
-            self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
+            # self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
+            # self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
         plt.plot(range(len(intensities)), self.results)
         plt.show()
-        self.logger.info(f"Curvatures at root: {self.results}")
+        # self.logger.info(f"Curvatures at root: {self.results}")
 
 
 class CoarseExtrinsicCurvatureAnalyzer:
@@ -74,20 +75,20 @@ class CoarseExtrinsicCurvatureAnalyzer:
         self.point_cloud = None
         self.sample_curvatures = []
 
-    def analyze(self, scales, intensities, noise=0, num_runs=1, regime="small-noise"):
+    def analyze(self, scales, intensities, noise=0, num_runs=1, regime="small-noise", verbose=False):
         for i in range(len(intensities)):
             self.sample_curvatures.append([])
-            for _ in range(num_runs):
+            for _ in tqdm(range(num_runs)):
                 self.point_cloud = self.manifold.poisson_sample(intensities[i], noise=noise)
                 self.point_cloud.root = self.root
                 extrinsic_curvature = 1 / (scales[i] ** 2) * self.point_cloud.compute_coarse_curvature(scales[i])
-                self.logger.info(f"Estimated extrinsic curvature: {extrinsic_curvature}")
+                # self.logger.info(f"Estimated extrinsic curvature: {extrinsic_curvature}")
                 self.sample_curvatures[i].append(extrinsic_curvature)
             result = sum(self.sample_curvatures[i]) / len(self.sample_curvatures[i])
             self.results.append(result)
-            self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
-            self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
-        self.logger.info(f"Curvatures at root: {self.results}")
+            # self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
+            # self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
+        # self.logger.info(f"Curvatures at root: {self.results}")
 
 
 class DisplayMidpointDistances:

@@ -45,8 +45,8 @@ class GeometricGraph(PointCloud):
         """
         points_subset_idx = np.argwhere(self.ambient_distances[0, :] < 2 * scale).flatten()
         subset_idx_mesh = np.ix_(points_subset_idx, points_subset_idx)
-        self.logger.info(f"Kept {len(points_subset_idx)} points "
-                         f"in a fixed interconnectivity neighbourhood.")
+        # self.logger.info(f"Kept {len(points_subset_idx)} points "
+        #                  f"in a fixed interconnectivity neighbourhood.")
         self.edge_weights = self.ambient_distances[subset_idx_mesh].copy()
         self.edge_weights[self.edge_weights > self.connectivity] = np.inf
 
@@ -57,10 +57,10 @@ class GeometricGraph(PointCloud):
         """
         points_subset_idx = np.argwhere(self.ambient_distances[0, :] < 2 * scale).flatten()
         subset_idx_mesh = np.ix_(points_subset_idx, points_subset_idx)
-        self.logger.info(f"Kept {len(points_subset_idx)} points at given random walk scale.")
+        # self.logger.info(f"Kept {len(points_subset_idx)} points at given random walk scale.")
         self.edge_weights = self.ambient_distances[subset_idx_mesh].copy()
         self.edge_weights[self.edge_weights > self.connectivity] = np.inf
-        self.logger.info("Computing graph distances...")
+        # self.logger.info("Computing graph distances...")
         if algorithm == 'floyd-warshall':
             self.graph_distances = floyd_warshall(self.edge_weights)
         elif algorithm == 'dijkstra':
@@ -72,8 +72,8 @@ class GeometricGraph(PointCloud):
         num_points = len(self.graph_distances)
         self.midpoint_indices = np.zeros((num_points, 2), dtype=int)
         midpoint_feasible = np.zeros(num_points, dtype=bool)
-        self.logger.info(f"The target has index {target}")
-        self.logger.info("Computing midpoint indices...")
+        # self.logger.info(f"The target has index {target}")
+        # self.logger.info("Computing midpoint indices...")
         for i in tqdm(range(num_points)):
             first_midpoint_index = find_midpoint_index(
                 i, 0, self.graph_distances, self.connectivity
@@ -87,11 +87,11 @@ class GeometricGraph(PointCloud):
                 midpoint_feasible[i] = True
         subset_idx_mesh = np.ix_(midpoint_feasible, midpoint_feasible)
         self.midpoint_indices = self.midpoint_indices[midpoint_feasible]
-        self.logger.info(f"Kept only {len(self.midpoint_indices)} points due to connectivity constraints.\n"
-                         f"Connectivity ratio: {len(self.midpoint_indices) / num_points}")
+        # self.logger.info(f"Kept only {len(self.midpoint_indices)} points due to connectivity constraints.\n"
+        #                  f"Connectivity ratio: {len(self.midpoint_indices) / num_points}")
 
     def _generate_random_target(self, scale: float = np.inf):
-        self.logger.info("Generating target point.")
+        # self.logger.info("Generating target point.")
         targets = np.argwhere((59/30 * scale < np.abs(self.graph_distances[0, :])) *
                              (2 * scale > np.abs(self.graph_distances[0, :])))
         if targets.size == 0:
@@ -116,13 +116,13 @@ class GeometricGraph(PointCloud):
         self._compute_midpoint_indices(scale, target)
 
         num_points = len(self.midpoint_indices)
-        self.logger.info("Computing coarse curvature...")
+        # self.logger.info("Computing coarse curvature...")
         if method == "triangular":
             self.midpoint_distances = [self.graph_distances[self.midpoint_indices[i, 0], self.midpoint_indices[i, 1]]
                  for i in range(num_points)]
             wasserstein_distance = 1 / num_points * sum(self.midpoint_distances)
             coarse_curvature = 1 - 2 * wasserstein_distance / self.distance_to_target
-            self.logger.info(f"Coarse curvature is {coarse_curvature}.")
+            # self.logger.info(f"Coarse curvature is {coarse_curvature}.")
             return coarse_curvature
         else:
             raise NotImplementedError(f"Method {method} is not implemented.")

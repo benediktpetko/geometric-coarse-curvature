@@ -22,7 +22,7 @@ class PointCloud:
         handler.setFormatter(formatter)
         file_handler.setFormatter(formatter)
 
-    def _compute_ambient_distances(self, root, scale):
+    def _compute_ambient_distances(self, root, scale, scale_multiple=2):
         """
         Computes ambient distances near a root point at given scale.
         :param root:
@@ -31,20 +31,20 @@ class PointCloud:
         """
         self.root = root
         self.points = np.concatenate((self.root[np.newaxis, :], self.points), axis=0)
-        self.logger.info("Computing pairwise ambient distances...")
+        # self.("Computing pairwise ambient distances...")
         distances_from_root = np.linalg.norm(root - self.points, axis=1)
-        points_subset_idx = np.argwhere(distances_from_root < 2 * scale).flatten()
+        points_subset_idx = np.argwhere(distances_from_root < scale_multiple * scale).flatten()
         # subset_idx_mesh = np.ix_(points_subset_idx, points_subset_idx)
         points_subset = self.points[points_subset_idx]
         self.ambient_distances = np.linalg.norm(
             points_subset[:, np.newaxis, :] - points_subset[np.newaxis, :, :], axis=2
         )
-        self.logger.info(f"Kept {len(self.ambient_distances)} points from a fixed ambient neighbourhood.")
+        # self.logger.info(f"Kept {len(self.ambient_distances)} points from a fixed ambient neighbourhood.")
 
     def _generate_random_target(self, scale: float = np.inf):
-        self.logger.info("Generating target point.")
-        targets = np.argwhere((1 / 2 * scale < np.abs(self.ambient_distances[0, :])) *
-                              (scale > np.abs(self.ambient_distances[0, :])))
+        # self.logger.info("Generating target point.")
+        targets = np.argwhere((2 * scale < np.abs(self.ambient_distances[0, :])) *
+                              (3 * scale > np.abs(self.ambient_distances[0, :])))
         if targets.size == 0:
             self.logger.warning("Couldn't find a target point at given scale.")
         target = targets[0]
@@ -52,7 +52,7 @@ class PointCloud:
         return int(target)
 
     def compute_coarse_curvature(self, scale: float, target: int = None):
-        self._compute_ambient_distances(self.root, scale)
+        self._compute_ambient_distances(self.root, scale, scale_multiple=4)
         if target is None:
             target = self._generate_random_target(scale)
         source_nbhood = np.argwhere(self.ambient_distances[0, :] < scale).ravel()

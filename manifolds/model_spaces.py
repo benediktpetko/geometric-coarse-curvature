@@ -34,7 +34,7 @@ class Hypersphere(EmbeddedManifold):
             radial_noise = np.random.uniform(size=num_points)
             radial_noise = (2 * noise / self.radius * np.sqrt(radial_noise) ** 3 - noise / self.radius).reshape(-1, 1)
             points = points * (1 + radial_noise)
-        self.logger.info(f"Sampled {len(points)} points.")
+        # self.logger.info(f"Sampled {len(points)} points.")
         return PointCloud(points=points)
 
     def plot(self, points: np.ndarray):
