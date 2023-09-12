@@ -74,7 +74,8 @@ class GeometricGraph(PointCloud):
         midpoint_feasible = np.zeros(num_points, dtype=bool)
         # self.logger.info(f"The target has index {target}")
         # self.logger.info("Computing midpoint indices...")
-        for i in tqdm(range(num_points)):
+        # for i in tqdm(range(num_points)):
+        for i in range(num_points):
             first_midpoint_index = find_midpoint_index(
                 i, 0, self.graph_distances, self.connectivity
             )
@@ -87,12 +88,12 @@ class GeometricGraph(PointCloud):
                 midpoint_feasible[i] = True
         subset_idx_mesh = np.ix_(midpoint_feasible, midpoint_feasible)
         self.midpoint_indices = self.midpoint_indices[midpoint_feasible]
-        # self.logger.info(f"Kept only {len(self.midpoint_indices)} points due to connectivity constraints.\n"
-        #                  f"Connectivity ratio: {len(self.midpoint_indices) / num_points}")
+        self.logger.info(f"Kept only {len(self.midpoint_indices)} points due to connectivity constraints.\n"
+                         f"Connectivity ratio: {len(self.midpoint_indices) / num_points}")
 
     def _generate_random_target(self, scale: float = np.inf):
         # self.logger.info("Generating target point.")
-        targets = np.argwhere((59/30 * scale < np.abs(self.graph_distances[0, :])) *
+        targets = np.argwhere((55/30 * scale < np.abs(self.graph_distances[0, :])) *
                              (2 * scale > np.abs(self.graph_distances[0, :])))
         if targets.size == 0:
             self.logger.warning("Couldn't find a target point at given scale.")

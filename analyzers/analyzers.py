@@ -22,7 +22,6 @@ class CoarseRicciCurvatureAnalyzer:
         formatter = logging.Formatter("%(levelname)s: %(name)s: %(message)s")
         handler.setFormatter(formatter)
         file_handler.setFormatter(formatter)
-        # file_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(handler)
         self.logger.addHandler(file_handler)
         self.results = []
@@ -33,12 +32,12 @@ class CoarseRicciCurvatureAnalyzer:
         self.sample_curvatures = []
 
     def analyze(self, connectivities, scales, intensities, num_runs=1,
-                method="triangular", algorithm='floyd-warshall'):
+                method="triangular", algorithm='dijkstra'):
         for i in range(len(intensities)):
             # self.logger.info(f"Point density factor: {intensities[i] * connectivities[i] ** self.manifold.dim}")
             # self.logger.info(f"Geodesic approximation factor: {scales[i] / connectivities[i]}")
             self.sample_curvatures.append([])
-            for _ in range(num_runs):
+            for _ in tqdm(range(num_runs)):
                 self.point_cloud = self.manifold.poisson_sample(intensities[i])
                 self.geometric_graph = GeometricGraph(self.point_cloud, self.root, connectivities[i])
                 try:
@@ -47,14 +46,15 @@ class CoarseRicciCurvatureAnalyzer:
                 except IndexError:
                     continue
                 # self.logger.info(f"Estimated Ricci curvature: {ricci_curvature}")
-                self.sample_curvatures[i].append(ricci_curvature)
+                self.sample_curvatures[i].append(ricci_curvature.ravel())
             result = sum(self.sample_curvatures[i]) / len(self.sample_curvatures[i])
             self.results.append(result)
             # self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
             # self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
         plt.plot(range(len(intensities)), self.results)
         plt.show()
-        # self.logger.info(f"Curvatures at root: {self.results}")
+        self.logger.info(f"Curvatures at root: {self.results}")
+        self.logger.info(f"Expected curvature at root: {np.mean(self.sample_curvatures[0])}")
 
 
 class CoarseExtrinsicCurvatureAnalyzer:
@@ -89,6 +89,7 @@ class CoarseExtrinsicCurvatureAnalyzer:
             # self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
             # self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
         # self.logger.info(f"Curvatures at root: {self.results}")
+        self.logger.info(f"Expected curvature at root: {np.mean(self.sample_curvatures[0])}")
 
 
 class DisplayMidpointDistances:
