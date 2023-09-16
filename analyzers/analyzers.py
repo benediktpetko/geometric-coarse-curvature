@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import logging
 import seaborn as sns
+import pandas as pd
 
 from structures.geometric_graph import GeometricGraph
 from tqdm import tqdm
@@ -76,14 +77,23 @@ class CoarseExtrinsicCurvatureAnalyzer:
         self.geometric_graph = None
         self.point_cloud = None
         self.sample_curvatures = []
+        self.scales = None
+        self.intensities = None
+        self.noises = None
 
-    def analyze(self, scales, intensities, noise=0, num_runs=1, regime="small-noise", verbose=False):
+    def analyze(self, scales, intensities, noises, num_runs=1, regime="small-noise", verbose=False):
+        self.scales = scales
+        self.intensities = intensities
+        self.noises = noises
         for i in range(len(intensities)):
             self.sample_curvatures.append([])
             for _ in tqdm(range(num_runs)):
-                self.point_cloud = self.manifold.poisson_sample(intensities[i], noise=noise)
+                self.point_cloud = self.manifold.poisson_sample(intensities[i], noise=noises[i])
                 self.point_cloud.root = self.root
-                extrinsic_curvature = 1 / (scales[i] ** 2) * self.point_cloud.compute_coarse_curvature(scales[i])
+                if regime == "small-noise":
+                    extrinsic_curvature = 1 / (scales[i] ** 2) * self.point_cloud.compute_coarse_curvature(scales[i])
+                if regime == "big-noise":
+                    extrinsic_curvature = 1 / (scales[i] ** 2) * self.point_cloud.compute_coarse_curvature(scales[i])
                 # self.logger.info(f"Estimated extrinsic curvature: {extrinsic_curvature}")
                 self.sample_curvatures[i].append(extrinsic_curvature)
             result = sum(self.sample_curvatures[i]) / len(self.sample_curvatures[i])
@@ -102,3 +112,25 @@ class DisplayMidpointDistances:
         ax.axvline(analyzer.geometric_graph.distance_to_target / 2, color='r')
         fig.show()
         fig.savefig("../plots/midpoints_dist.png")
+
+
+class DisplayCurvatureConvergence:
+    @staticmethod
+    def plot(analyzer: CoarseExtrinsicCurvatureAnalyzer, vary="scale"):
+        fig, ax = plt.subplots()
+        curvatures = analyzer.sample_curvatures
+        if vary == "scale":
+            param = analyzer.scales
+        if vary == "noise":
+            param = analyzer.noises
+        if vary == "intensity":
+            param=analyzer.intensities
+        means = np.mean(curvatures, axis=1).ravel()
+        stds = np.std(curvatures, axis=1).ravel()
+        sns.lineplot(x=param, y=means)
+        plt.fill_between(param, means-stds, means+stds, color='blue', alpha=.3)
+        # if vary == "scale" or "noise":
+        #     plt.gca().invert_xaxis()
+        plt.show()
+
+
