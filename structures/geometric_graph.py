@@ -50,7 +50,7 @@ class GeometricGraph(PointCloud):
         self.edge_weights = self.ambient_distances[subset_idx_mesh].copy()
         self.edge_weights[self.edge_weights > self.connectivity] = np.inf
 
-    def _compute_graph_distances(self, scale: float = np.inf, algorithm='floyd-warshall'):
+    def _compute_graph_distances(self, scale: float = np.inf, algorithm='dijkstra'):
         """
         Compute the graph distances and midpoints between points around the root,
         ignoring points further than 2*scale away.

@@ -7,9 +7,9 @@ from analyzers.analyzers import CoarseRicciCurvatureAnalyzer, DisplayMidpointDis
 
 
 sphere = Hypersphere()
-connectivities = 0.06 / np.arange(1, 2)
-scales = 0.3 / np.arange(1, 2)
-intensities = 8000 * np.arange(1, 2)
+connectivities = 0.08 / np.arange(1, 2)
+scales = 0.32 / np.arange(1, 2)
+intensities = 6000 * np.arange(1, 2)
 root = np.array([1, 0, 0])
 
 # analyzer = CoarseRicciCurvatureAnalyzer(sphere, root)

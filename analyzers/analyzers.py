@@ -42,7 +42,9 @@ class CoarseRicciCurvatureAnalyzer:
                 self.geometric_graph = GeometricGraph(self.point_cloud, self.root, connectivities[i])
                 try:
                     ricci_curvature = 2 * (self.manifold.dim + 2) / (scales[i] ** 2) * \
-                                  self.geometric_graph.compute_coarse_curvature(scales[i], method=method, algorithm=algorithm)
+                                  self.geometric_graph.compute_coarse_curvature(scales[i],
+                                                                                method=method,
+                                                                                algorithm=algorithm)
                 except IndexError:
                     continue
                 # self.logger.info(f"Estimated Ricci curvature: {ricci_curvature}")
