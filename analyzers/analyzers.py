@@ -91,9 +91,9 @@ class CoarseExtrinsicCurvatureAnalyzer:
                 self.point_cloud = self.manifold.poisson_sample(intensities[i], noise=noises[i])
                 self.point_cloud.root = self.root
                 if regime == "small-noise":
-                    extrinsic_curvature = 1 / (scales[i] ** 2) * self.point_cloud.compute_coarse_curvature(scales[i])
-                if regime == "big-noise":
-                    extrinsic_curvature = 1 / (scales[i] ** 2) * self.point_cloud.compute_coarse_curvature(scales[i])
+                    extrinsic_curvature = 1 / (1 / 4 * scales[i] ** 2 - noises[i] ** 2) * self.point_cloud.compute_coarse_curvature(scales[i])
+                # if regime == "big-noise":
+                #     extrinsic_curvature = 1 / (scales[i] ** 2) * self.point_cloud.compute_coarse_curvature(scales[i])
                 # self.logger.info(f"Estimated extrinsic curvature: {extrinsic_curvature}")
                 self.sample_curvatures[i].append(extrinsic_curvature)
             result = sum(self.sample_curvatures[i]) / len(self.sample_curvatures[i])
@@ -127,10 +127,17 @@ class DisplayCurvatureConvergence:
             param=analyzer.intensities
         means = np.mean(curvatures, axis=1).ravel()
         stds = np.std(curvatures, axis=1).ravel()
-        sns.lineplot(x=param, y=means)
-        plt.fill_between(param, means-stds, means+stds, color='blue', alpha=.3)
-        # if vary == "scale" or "noise":
-        #     plt.gca().invert_xaxis()
+        fig, ax = plt.subplots()
+        ax.axhline(1, c='r')
+        sns.lineplot(x=param, y=means, linewidth=3)
+        plt.fill_between(param, means-stds, means+stds, color='blue', alpha=0.2)
+        if vary == "scale":
+            plt.xlabel("Scale parameter")
+        if vary == "noise":
+            plt.xlabel("Noise parameter")
+        if vary == "intensity":
+            plt.xlabel("Intensity")
+        plt.ylabel("Extrinsic curvature")
+
+        # ax.set_xscale('log')
         plt.show()
-
-
