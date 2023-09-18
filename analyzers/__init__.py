@@ -1,1 +1,1 @@
-from analyzers import *
+from .analyzers import *

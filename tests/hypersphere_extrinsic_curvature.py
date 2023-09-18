@@ -5,7 +5,8 @@ import seaborn as sns
 
 
 from manifolds.model_spaces import Hypersphere
-from analyzers.analyzers import CoarseExtrinsicCurvatureAnalyzer, DisplayCurvatureConvergence
+from analyzers.analyzers import (CoarseExtrinsicCurvatureAnalyzer,
+                                 DisplayCurvatureConvergence, DisplayCurvatureDistribution)
 from util.util import gaussian
 
 sphere = Hypersphere()
@@ -26,15 +27,4 @@ analyzer = CoarseExtrinsicCurvatureAnalyzer(sphere, root)
 analyzer.analyze(scales, intensities, noises, num_runs=1000)
 
 # DisplayCurvatureConvergence.plot(analyzer, vary='intensity')
-
-# empirical distribution of extrinsic curvature
-curvatures = np.array([float(c) for c in analyzer.sample_curvatures[-1]])
-fig, ax = plt.subplots()
-m = np.mean(curvatures)
-s = np.std(curvatures)
-sns.histplot(curvatures, stat='density')
-x = np.linspace(-3 * s, 3 * s, 6000)
-sns.lineplot(x=x, y=gaussian(x, m, s), linewidth=3)
-plt.ylabel("Density")
-plt.xlabel("Curvature")
-plt.show()
+# DisplayCurvatureDistribution.plot(analyzer, "extrinsic_curvature_distribution.png")

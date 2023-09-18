@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from manifolds.model_spaces import Hypersphere
-from analyzers.analyzers import CoarseRicciCurvatureAnalyzer, DisplayMidpointDistances
+from analyzers import CoarseRicciCurvatureAnalyzer, DisplayMidpointDistances, DisplayCurvatureDistribution
 
 
 sphere = Hypersphere()
@@ -17,6 +17,6 @@ root = np.array([1, 0, 0])
 
 # DisplayMidpointDistances.plot(analyzer)
 analyzer = CoarseRicciCurvatureAnalyzer(sphere, root)
-analyzer.analyze(connectivities, scales, intensities, num_runs=1, method="optimization")
-sns.histplot([float(c) for c in analyzer.sample_curvatures[0]])
-plt.show()
+analyzer.analyze(connectivities, scales, intensities, num_runs=200, method="optimization")
+
+DisplayCurvatureDistribution.plot(analyzer, "ricci_curvature_distribution.png")

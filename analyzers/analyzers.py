@@ -6,7 +6,7 @@ import pandas as pd
 
 from structures.geometric_graph import GeometricGraph
 from tqdm import tqdm
-from abc import ABC
+from util import gaussian
 
 
 class Analyzer:
@@ -57,7 +57,8 @@ class CoarseRicciCurvatureAnalyzer:
             # self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
             # self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
         # self.logger.info(f"Curvatures at root: {self.results}")
-        self.logger.info(f"Expected Ricci curvature at root: {np.mean(self.sample_curvatures[0])}")
+        self.logger.info(f"Expected Ricci curvature at root: {np.mean(self.sample_curvatures[0])}"
+                         f"STD of Ricci curvature at root: {np.std(self.sample_curvatures[0])}")
 
 
 class CoarseExtrinsicCurvatureAnalyzer:
@@ -68,7 +69,6 @@ class CoarseExtrinsicCurvatureAnalyzer:
         formatter = logging.Formatter("%(levelname)s: %(name)s: %(message)s")
         handler.setFormatter(formatter)
         file_handler.setFormatter(formatter)
-        # file_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(handler)
         self.logger.addHandler(file_handler)
         self.results = []
@@ -101,7 +101,8 @@ class CoarseExtrinsicCurvatureAnalyzer:
             # self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
             # self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
         # self.logger.info(f"Curvatures at root: {self.results}")
-        self.logger.info(f"Expected extrinsic curvature at root: {np.mean(self.sample_curvatures[0])}")
+        self.logger.info(f"Expected extrinsic curvature at root: {np.mean(self.sample_curvatures[0])}"
+                         f"STD of extrinsic curvature at root: {np.std(self.sample_curvatures[0])}")
 
 
 class DisplayMidpointDistances:
@@ -141,3 +142,19 @@ class DisplayCurvatureConvergence:
 
         # ax.set_xscale('log')
         plt.show()
+
+
+class DisplayCurvatureDistribution:
+    @staticmethod
+    def plot(analyzer, filename):
+        curvatures = np.array([float(c) for c in analyzer.sample_curvatures[-1]])
+        fig, ax = plt.subplots()
+        m = np.mean(curvatures)
+        s = np.std(curvatures)
+        sns.histplot(curvatures, stat='density')
+        x = np.linspace(-3 * s, 3 * s, 6000)
+        sns.lineplot(x=x, y=gaussian(x, m, s), linewidth=3)
+        plt.ylabel("Density")
+        plt.xlabel("Curvature")
+        plt.show()
+        plt.savefig(f"../plots/{filename}")
