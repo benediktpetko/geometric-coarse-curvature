@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+import ot
 
 from tqdm import tqdm
 from algorithms.shortest_paths import *
@@ -53,7 +54,7 @@ class GeometricGraph(PointCloud):
     def _compute_graph_distances(self, scale: float = np.inf, algorithm='dijkstra'):
         """
         Compute the graph distances and midpoints between points around the root,
-        ignoring points further than 2*scale away.
+        ignoring points further than 3*scale away.
         """
         points_subset_idx = np.argwhere(self.ambient_distances[0, :] < 2 * scale).flatten()
         subset_idx_mesh = np.ix_(points_subset_idx, points_subset_idx)
@@ -61,10 +62,10 @@ class GeometricGraph(PointCloud):
         self.edge_weights = self.ambient_distances[subset_idx_mesh].copy()
         self.edge_weights[self.edge_weights > self.connectivity] = np.inf
         # self.logger.info("Computing graph distances...")
-        if algorithm == 'floyd-warshall':
-            self.graph_distances = floyd_warshall(self.edge_weights)
-        elif algorithm == 'dijkstra':
+        if algorithm == 'dijkstra':
             self.graph_distances = dijkstra_pairwise(self.edge_weights)
+        elif algorithm == 'floyd-warshall':
+            self.graph_distances = floyd_warshall(self.edge_weights)
         else:
             raise NotImplementedError("Algorithm not implemented.")
 
@@ -93,37 +94,44 @@ class GeometricGraph(PointCloud):
 
     def _generate_random_target(self, scale: float = np.inf):
         # self.logger.info("Generating target point.")
-        targets = np.argwhere((55/30 * scale < np.abs(self.graph_distances[0, :])) *
-                             (2 * scale > np.abs(self.graph_distances[0, :])))
+        targets = np.argwhere((1/2 * scale < np.abs(self.graph_distances[0, :])) *
+                              (3/2 * scale > np.abs(self.graph_distances[0, :])))
         if targets.size == 0:
             self.logger.warning("Couldn't find a target point at given scale.")
         target = targets[0]
         self.distance_to_target = self.graph_distances[0, target]
         return int(target)
 
-    def compute_coarse_curvature(self, scale: float, target: int = None, method="triangular", algorithm="floyd-warshall") -> float:
+    def compute_coarse_curvature(self, scale: float, target: int = None, method="optimization", algorithm="dijkstra") -> float:
         """
         Compute the coarse curvature of the graph at the root in the direction of the target.
         If no target is provided, a random target is chosen.
 
-        Methods implemented: ``triangular``.
+        Methods implemented: ``optimization``, ``triangular`` (experimental).
         """
         # compute necessary data for the graph
         self._compute_ambient_distances(self.root, scale)
-        self._compute_edge_weights(scale)
         self._compute_graph_distances(scale, algorithm)
         if target is None:
             target = self._generate_random_target(scale)
-        self._compute_midpoint_indices(scale, target)
-
-        num_points = len(self.midpoint_indices)
         # self.logger.info("Computing coarse curvature...")
-        if method == "triangular":
+        if method == "optimization":
+            source_nbhood = np.argwhere(self.graph_distances[0, :] < scale).ravel()
+            target_nbhood = np.argwhere(self.graph_distances[target, :] < scale).ravel()
+            num_source = len(source_nbhood)
+            num_target = len(target_nbhood)
+            subset_idx_mesh = np.ix_(source_nbhood, target_nbhood)
+            wasserstein_distance = ot.emd2(np.ones(num_source) / num_source, np.ones(num_target) / num_target,
+                        self.graph_distances[subset_idx_mesh])
+            coarse_curvature = 1 - wasserstein_distance / self.distance_to_target
+        elif method == "triangular":
+            self._compute_midpoint_indices(scale, target)
+            num_points = len(self.midpoint_indices)
             self.midpoint_distances = [self.graph_distances[self.midpoint_indices[i, 0], self.midpoint_indices[i, 1]]
-                 for i in range(num_points)]
+                                       for i in range(num_points)]
             wasserstein_distance = 1 / num_points * sum(self.midpoint_distances)
             coarse_curvature = 1 - 2 * wasserstein_distance / self.distance_to_target
-            # self.logger.info(f"Coarse curvature is {coarse_curvature}.")
-            return coarse_curvature
         else:
             raise NotImplementedError(f"Method {method} is not implemented.")
+        # self.logger.info(f"Coarse curvature is {coarse_curvature}.")
+        return coarse_curvature

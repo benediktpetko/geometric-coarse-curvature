@@ -8,8 +8,10 @@ from structures.geometric_graph import GeometricGraph
 from tqdm import tqdm
 from abc import ABC
 
+
 class Analyzer:
     pass
+
 
 class CoarseRicciCurvatureAnalyzer:
     """
@@ -33,7 +35,7 @@ class CoarseRicciCurvatureAnalyzer:
         self.sample_curvatures = []
 
     def analyze(self, connectivities, scales, intensities, num_runs=1,
-                method="triangular", algorithm='dijkstra'):
+                method="optimization", algorithm='dijkstra'):
         for i in range(len(intensities)):
             # self.logger.info(f"Point density factor: {intensities[i] * connectivities[i] ** self.manifold.dim}")
             # self.logger.info(f"Geodesic approximation factor: {scales[i] / connectivities[i]}")
@@ -54,10 +56,8 @@ class CoarseRicciCurvatureAnalyzer:
             self.results.append(result)
             # self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
             # self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
-        plt.plot(range(len(intensities)), self.results)
-        plt.show()
-        self.logger.info(f"Curvatures at root: {self.results}")
-        self.logger.info(f"Expected curvature at root: {np.mean(self.sample_curvatures[0])}")
+        # self.logger.info(f"Curvatures at root: {self.results}")
+        self.logger.info(f"Expected Ricci curvature at root: {np.mean(self.sample_curvatures[0])}")
 
 
 class CoarseExtrinsicCurvatureAnalyzer:
@@ -101,7 +101,7 @@ class CoarseExtrinsicCurvatureAnalyzer:
             # self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
             # self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
         # self.logger.info(f"Curvatures at root: {self.results}")
-        self.logger.info(f"Expected curvature at root: {np.mean(self.sample_curvatures[0])}")
+        self.logger.info(f"Expected extrinsic curvature at root: {np.mean(self.sample_curvatures[0])}")
 
 
 class DisplayMidpointDistances:
@@ -111,7 +111,7 @@ class DisplayMidpointDistances:
         sns.histplot(analyzer.geometric_graph.midpoint_distances, ax=ax)
         ax.axvline(analyzer.geometric_graph.distance_to_target / 2, color='r')
         fig.show()
-        fig.savefig("../plots/midpoints_dist.png")
+        fig.savefig("../plots/midpoints_distribution.png")
 
 
 class DisplayCurvatureConvergence:
