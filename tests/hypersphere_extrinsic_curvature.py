@@ -28,3 +28,4 @@ analyzer.analyze(scales, intensities, noises, num_runs=100)
 
 # DisplayCurvatureConvergence.plot(analyzer, vary='intensity')
 DisplayCurvatureDistribution.plot(analyzer, "curvature_distribution.png")
+# sphere.plot(analyzer.point_cloud.noisy_points_subset[:100])

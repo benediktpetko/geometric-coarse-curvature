@@ -31,10 +31,9 @@ class Hypersphere(EmbeddedManifold):
         points = np.random.normal(size=(num_points, self.ambient_dim))
         points = self.radius * points / np.linalg.norm(points, axis=1)[:, np.newaxis]
         noisy_points = None
-        if noise != 0:
-            radial_noise = np.random.uniform(size=num_points)
-            radial_noise = (2 * noise / self.radius * radial_noise ** (1 / 3) - noise / self.radius).reshape(-1, 1)
-            noisy_points = points * (1 + radial_noise / self.radius)
+        radial_noise = np.random.uniform(size=num_points)
+        radial_noise = (2 * noise / self.radius * radial_noise ** (1 / 3) - noise / self.radius).reshape(-1, 1)
+        noisy_points = points * (1 + radial_noise / self.radius)
         # self.logger.info(f"Sampled {len(points)} points.")
         return PointCloud(points=points, noisy_points=noisy_points)
 
