@@ -34,14 +34,14 @@ class CoarseRicciCurvatureAnalyzer:
         self.point_cloud = None
         self.sample_curvatures = []
 
-    def analyze(self, connectivities, scales, intensities, num_runs=1,
+    def analyze(self, connectivities, scales, intensities, noises, num_runs=1,
                 method="optimization", algorithm='dijkstra'):
         for i in range(len(intensities)):
             # self.logger.info(f"Point density factor: {intensities[i] * connectivities[i] ** self.manifold.dim}")
             # self.logger.info(f"Geodesic approximation factor: {scales[i] / connectivities[i]}")
             self.sample_curvatures.append([])
             for _ in tqdm(range(num_runs)):
-                self.point_cloud = self.manifold.poisson_sample(intensities[i])
+                self.point_cloud = self.manifold.poisson_sample(intensities[i], noises[i])
                 self.geometric_graph = GeometricGraph(self.point_cloud, self.root, connectivities[i])
                 try:
                     ricci_curvature = 2 * (self.manifold.dim + 2) / (scales[i] ** 2) * \
@@ -57,7 +57,7 @@ class CoarseRicciCurvatureAnalyzer:
             # self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
             # self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
         # self.logger.info(f"Curvatures at root: {self.results}")
-        self.logger.info(f"Expected Ricci curvature at root: {np.mean(self.sample_curvatures[0])}"
+        self.logger.info(f"Expected Ricci curvature at root: {np.mean(self.sample_curvatures[0])}\n"
                          f"STD of Ricci curvature at root: {np.std(self.sample_curvatures[0])}")
 
 
@@ -81,7 +81,7 @@ class CoarseExtrinsicCurvatureAnalyzer:
         self.intensities = None
         self.noises = None
 
-    def analyze(self, scales, intensities, noises, num_runs=1, regime="small-noise", verbose=False):
+    def analyze(self, scales, intensities, noises, num_runs=1, verbose=False):
         self.scales = scales
         self.intensities = intensities
         self.noises = noises
@@ -90,10 +90,8 @@ class CoarseExtrinsicCurvatureAnalyzer:
             for _ in tqdm(range(num_runs)):
                 self.point_cloud = self.manifold.poisson_sample(intensities[i], noise=noises[i])
                 self.point_cloud.root = self.root
-                if regime == "small-noise":
-                    extrinsic_curvature = 1 / (1 / 4 * scales[i] ** 2 - noises[i] ** 2) * self.point_cloud.compute_coarse_curvature(scales[i])
-                # if regime == "big-noise":
-                #     extrinsic_curvature = 1 / (scales[i] ** 2) * self.point_cloud.compute_coarse_curvature(scales[i])
+                extrinsic_curvature = (1 / (1 / 4 * scales[i] ** 2 - noises[i] ** 2) *
+                                       self.point_cloud.compute_coarse_curvature(scales[i]))
                 # self.logger.info(f"Estimated extrinsic curvature: {extrinsic_curvature}")
                 self.sample_curvatures[i].append(extrinsic_curvature)
             result = sum(self.sample_curvatures[i]) / len(self.sample_curvatures[i])
@@ -101,7 +99,7 @@ class CoarseExtrinsicCurvatureAnalyzer:
             # self.logger.info(f"Scale: {scales[i]}, curvature: {result}")
             # self.logger.info(f"Estimate from {len(self.sample_curvatures[i])} samples: {result}")
         # self.logger.info(f"Curvatures at root: {self.results}")
-        self.logger.info(f"Expected extrinsic curvature at root: {np.mean(self.sample_curvatures[0])}"
+        self.logger.info(f"Expected extrinsic curvature at root: {np.mean(self.sample_curvatures[0])}\n"
                          f"STD of extrinsic curvature at root: {np.std(self.sample_curvatures[0])}")
 
 
@@ -110,7 +108,7 @@ class DisplayMidpointDistances:
     def plot(analyzer: CoarseRicciCurvatureAnalyzer):
         fig, ax = plt.subplots()
         sns.histplot(analyzer.geometric_graph.midpoint_distances, ax=ax)
-        ax.axvline(analyzer.geometric_graph.distance_to_target / 2, color='r')
+        ax.axvline(analyzer.geometric_graph.root_to_target_distance / 2, color='r')
         fig.show()
         fig.savefig("../plots/midpoints_distribution.png")
 
@@ -125,7 +123,7 @@ class DisplayCurvatureConvergence:
         if vary == "noise":
             param = analyzer.noises
         if vary == "intensity":
-            param=analyzer.intensities
+            param = analyzer.intensities
         means = np.mean(curvatures, axis=1).ravel()
         stds = np.std(curvatures, axis=1).ravel()
         fig, ax = plt.subplots()
@@ -139,7 +137,6 @@ class DisplayCurvatureConvergence:
         if vary == "intensity":
             plt.xlabel("Intensity")
         plt.ylabel("Extrinsic curvature")
-
         # ax.set_xscale('log')
         plt.show()
 
@@ -152,7 +149,7 @@ class DisplayCurvatureDistribution:
         m = np.mean(curvatures)
         s = np.std(curvatures)
         sns.histplot(curvatures, stat='density')
-        x = np.linspace(-3 * s, 3 * s, 6000)
+        x = np.linspace(m - 3 * s, m + 3 * s, 6000)
         sns.lineplot(x=x, y=gaussian(x, m, s), linewidth=3)
         plt.ylabel("Density")
         plt.xlabel("Curvature")
