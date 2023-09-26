@@ -21,7 +21,7 @@ root = np.array([1, 0, 0])
 L = 1
 noises = np.full(L, 0.2) # 0.1 * np.arange(1, L)
 scales = np.full(L, 0.2) # 0.2 / np.arange(1, L)
-intensities = 30000 * np.full(1, L+1) # ** 2
+intensities = 40000 * np.full(1, L+1) # ** 2
 
 analyzer = CoarseExtrinsicCurvatureAnalyzer(sphere, root)
 analyzer.analyze(scales, intensities, noises, num_runs=100)
