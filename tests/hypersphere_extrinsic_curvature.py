@@ -19,9 +19,10 @@ root = np.array([1, 0, 0])
 # intensities = 5000 * np.arange(1, L+1) # ** 2
 
 L = 10
-noises = 0.2 / np.arange(1, L+1) # np.full(L, 0.01) # 0.12 * np.arange(1, L)
+# noises = 0.2 / np.arange(1, L+1) # np.full(L, 0.01) # 0.12 * np.arange(1, L)
+noises = [0.25, 0.2, 0.15, 0.9, 0.075, 0.05, 0.025, 0.01, 0.005, 0]
 scales = np.full(L, 0.2) # 0.2 / np.arange(1, L)
-intensities = 40000 * np.arange(1, L+1) # ** 2
+intensities = 40000 * np.full(1, L+1) # ** 2
 
 # L = 1
 # noises = np.full(L, 0.15) # 0.1 * np.arange(1, L)
