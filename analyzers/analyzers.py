@@ -115,7 +115,7 @@ class DisplayMidpointDistances:
 
 class DisplayCurvatureConvergence:
     @staticmethod
-    def plot(analyzer: CoarseExtrinsicCurvatureAnalyzer, vary="scale"):
+    def plot(analyzer: CoarseExtrinsicCurvatureAnalyzer, vary, filename):
         fig, ax = plt.subplots()
         curvatures = analyzer.sample_curvatures
         if vary == "scale":
@@ -139,6 +139,7 @@ class DisplayCurvatureConvergence:
         plt.ylabel("Extrinsic curvature")
         # ax.set_xscale('log')
         plt.show()
+        plt.savefig(f"plots/{filename}")
 
 
 class DisplayCurvatureDistribution:
@@ -154,4 +155,4 @@ class DisplayCurvatureDistribution:
         plt.ylabel("Density")
         plt.xlabel("Curvature")
         plt.show()
-        plt.savefig(f"../plots/{filename}")
+        plt.savefig(f"plots/{filename}")

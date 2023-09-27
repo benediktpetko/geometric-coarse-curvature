@@ -14,18 +14,23 @@ root = np.array([1, 0, 0])
 
 # experiment parameters
 # L = 10
-# noises = np.full(L, 0.01) # 0.1 * np.arange(1, L)
+# noises =  # np.full(L, 0.01) # 0.1 * np.arange(1, L)
 # scales = np.full(L, 0.2) # 0.2 / np.arange(1, L)
 # intensities = 5000 * np.arange(1, L+1) # ** 2
 
-L = 1
-noises = np.full(L, 0.2) # 0.1 * np.arange(1, L)
+L = 10
+noises = 0.2 / np.arange(1, L+1) # np.full(L, 0.01) # 0.12 * np.arange(1, L)
 scales = np.full(L, 0.2) # 0.2 / np.arange(1, L)
-intensities = 40000 * np.full(1, L+1) # ** 2
+intensities = 40000 * np.arange(1, L+1) # ** 2
+
+# L = 1
+# noises = np.full(L, 0.15) # 0.1 * np.arange(1, L)
+# scales = np.full(L, 0.2) # 0.2 / np.arange(1, L)
+# intensities = 20000 * np.full(1, L+1) # ** 2
 
 analyzer = CoarseExtrinsicCurvatureAnalyzer(sphere, root)
 analyzer.analyze(scales, intensities, noises, num_runs=100)
 
-# DisplayCurvatureConvergence.plot(analyzer, vary='intensity')
-DisplayCurvatureDistribution.plot(analyzer, "curvature_distribution.png")
+DisplayCurvatureConvergence.plot(analyzer, vary='noise')
+# DisplayCurvatureDistribution.plot(analyzer, "curvature_distribution.png")
 # sphere.plot(analyzer.point_cloud.noisy_points_subset[:100])
