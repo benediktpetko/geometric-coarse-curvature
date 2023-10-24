@@ -7,6 +7,7 @@ class PointCloud:
     """
     Base class for points in a Euclidean space.
     """
+
     def __init__(self, points: np.ndarray, noisy_points=None, root=None):
         self.root = root
         self.ambient_distances = None
@@ -49,7 +50,7 @@ class PointCloud:
             self.noisy_points_subset = self.noisy_points[points_subset_idx]
             self.noisy_ambient_distances = np.linalg.norm(
                 self.noisy_points_subset[:, np.newaxis, :] - self.noisy_points_subset[np.newaxis, :, :], axis=2
-        )
+            )
         # self.logger.info(f"Kept {len(self.ambient_distances)} points from a fixed ambient neighbourhood.")
 
     def _generate_random_target(self, scale: float = np.inf):
@@ -82,4 +83,4 @@ class PointCloud:
 
     def __str__(self):
         return f"PointCloud with {self.num_points} points in {self.ambient_dim} dimensions. \n" + \
-               f"Points: \n {self.points[:10, :]}"
+            f"Points: \n {self.points[:10, :]}"

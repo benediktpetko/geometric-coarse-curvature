@@ -90,7 +90,7 @@ class CoarseExtrinsicCurvatureAnalyzer:
             for _ in tqdm(range(num_runs)):
                 self.point_cloud = self.manifold.poisson_sample(intensities[i], noise=noises[i])
                 self.point_cloud.root = self.root
-                extrinsic_curvature = (1 / (1 / 4 * scales[i] ** 2 - noises[i] ** 2) *
+                extrinsic_curvature = (1 / (1 / 4 * scales[i] ** 2 - 2 / 3 * noises[i] ** 2) *
                                        self.point_cloud.compute_coarse_curvature(scales[i]))
                 # self.logger.info(f"Estimated extrinsic curvature: {extrinsic_curvature}")
                 self.sample_curvatures[i].append(extrinsic_curvature)
@@ -155,4 +155,4 @@ class DisplayCurvatureDistribution:
         plt.ylabel("Density")
         plt.xlabel("Curvature")
         plt.show()
-        plt.savefig(f"plots/{filename}")
+        plt.savefig(f"../plots/{filename}")
