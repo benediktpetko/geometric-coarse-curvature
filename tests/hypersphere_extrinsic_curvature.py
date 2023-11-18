@@ -25,12 +25,12 @@ root = np.array([1, 0, 0])
 # intensities = 40000 * np.full(L, 1) # ** 2
 
 L = 1
-noises = np.full(L, 0.1) # 0.1 * np.arange(1, L)
-scales = np.full(L, 0.1) # 0.2 / np.arange(1, L)
-intensities = 200000 * np.full(L, 1) # ** 2
+noises = np.full(L, 0.2) # 0.1 * np.arange(1, L)
+scales = np.full(L, 0.2) # 0.2 / np.arange(1, L)
+intensities = 30000 * np.full(L, 1) # ** 2
 
 analyzer = CoarseExtrinsicCurvatureAnalyzer(sphere, root)
-analyzer.analyze(scales, intensities, noises, num_runs=100)
+analyzer.analyze(scales, intensities, noises, num_runs=300)
 
 # DisplayCurvatureConvergence.plot(analyzer, filename='curvature_convergence_noise.png', vary='noise')
 DisplayCurvatureDistribution.plot(analyzer, "curvature_distribution.png")
